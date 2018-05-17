@@ -1,37 +1,16 @@
 #include <stdio.h>
 #include "sqlite3.h"
 #include <stdlib.h>
-
-
-typedef struct{
-	int oid;
-	int valueInt;
-	int radio;
-	int upSentPeriod;
-	int belongToOid;
-	int mbAddr;
-	int treatOption;
-	int belongOidIdx;
-	int mbDataLen;
-	int mbDataType;
-	char valueString[15];
-	char ssType[30];
-	char ssDataType[30];
-	char resouceMap[30];
-	char ssTypeCnName[50];
-	char oidName[50];
-
-}devDataTable;
+#include "public.h"
 
 devDataTable g_devDataTab[100];
-char g_tabLen=0;
+int  g_tabLen=0;
 void sqTable_init(void)
 {
 	sqlite3 *pdb = NULL;
 
 	char** pResult;
 	int nRow,nCol,nResult;
-	int i = 0;
 	char* errmsg;
 
 	nResult = sqlite3_open_v2("jxdh01-v01.db",&pdb,SQLITE_OPEN_READWRITE,NULL);
@@ -52,9 +31,10 @@ void sqTable_init(void)
       return ;
   }
     printf("sqlite3_get_table ok\n");
-  char * strOut;
+
   int nIndex = nCol;
-  int j;
+
+  g_tabLen = nRow-1;
 
   for(int i=0;i<nRow-1;i++)
   {
@@ -104,8 +84,7 @@ void sqTable_init(void)
   //printf(strOut);
   sqlite3_close(pdb);
     printf("open ok\n");
-    sqlite3_close(pdb);
 
-    exit(EXIT_SUCCESS);
+   // exit(EXIT_SUCCESS);
 
 }
