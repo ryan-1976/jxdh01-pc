@@ -47,6 +47,18 @@ typedef signed   int   INT32S;
 #define MQTPA        0X00
 #define MQTPB        0X01
 
+#define SET_0        0
+#define SET_1        1
+
+#define READ_10      10
+#define READ_11      11
+#define READ_30      11
+#define READ_100     100
+
+#define ALM_20       20
+
+
+
 typedef struct
 {
 	volatile unsigned long int    readPos;
@@ -77,6 +89,7 @@ typedef struct
 typedef struct{
 	int oid;
 	int valueInt;
+	int valueIntPre;
 	int radio;
 	int upSentPeriod;
 	int belongToOid;
@@ -93,6 +106,8 @@ typedef struct{
 	char oidName[50];
 
 }devDataTable;
-
+extern int  get_oidIdx(int oid);
+extern devDataTable *g_devDataTab;
+extern int  g_tabLen;
 #endif
 
