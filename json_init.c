@@ -4,8 +4,8 @@
 #include "cJSON.h"
 
 cJSON *g_devCfgJsonRoot,*g_devCfgJsonSerial[6];
-
-
+char *g_mqComVer;
+char *g_mqComId;
 cJSON *readJsonFile(char *filename)
 {  
     FILE *f;  
@@ -67,6 +67,9 @@ int json_init()
 	g_devCfgJsonSerial[3]= cJSON_GetObjectItem(g_devCfgJsonRoot,"serialPort4");
 	g_devCfgJsonSerial[4]= cJSON_GetObjectItem(g_devCfgJsonRoot,"serialPort5");
 	g_devCfgJsonSerial[5]= cJSON_GetObjectItem(g_devCfgJsonRoot,"serialPort6");
+	g_mqComVer = cJSON_GetObjectItem(g_devCfgJsonRoot,"mqComVersion")->valuestring;
+	g_mqComId = cJSON_GetObjectItem(g_devCfgJsonRoot,"mqComId")->valuestring;
+
 //
 //    cJSON_GetObjectItem(devCfgJsonRoot,"devSN")->valuestring = "88888888888888888888";
 //    cJSON_GetObjectItem(devCfgJsonRoot,"mqComId")->valuestring = "testrr.34343343.9999";

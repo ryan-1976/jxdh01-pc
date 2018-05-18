@@ -14,11 +14,15 @@
 #include "sqlite3.h"
 #include "circlebuff.h"
 #include "public.h"
+#include "cJSON.h"
 
 //extern devDataTable *g_devDataTab;
 extern DATAS_BUFF_T   comBuff0; 
 int *pAlmOidIdx;
 int *pReadOidIdx;
+INT32U g_reportTimeCnt=0;
+char g_currentTime[50]={0};
+
 void *sampleData_treat(void)
 {
 	int i;
@@ -29,13 +33,17 @@ void *sampleData_treat(void)
 
 	while(1)
 	{
-		printf("---enter ---sampleData_treat----------\n");
-
+		g_reportTimeCnt=g_reportTimeCnt+100;
+		sleep(1);
+		dataInt2String();
+		dataReport_treat();
+		//printf("---enter ---sampleData_treat----------\n");
 //		pthread_mutex_lock(&comBuff0.lock);
 //		spi2MqtttPacket();
 //		pthread_cond_signal(&comBuff0.newPacketFlag);
 //		pthread_mutex_unlock(&comBuff0.lock);
-		sleep(1);//delay 1s
+
+
 	}
 }
 void data_classification(void)
@@ -45,30 +53,122 @@ void data_classification(void)
 
 	for(int i=0;i<g_tabLen-1;i++)
 	{
-		if(g_devDataTab[i].treatOption == ALM_20)m++;
-
+		if(g_devDataTab[i].dataOption == ALM_20)m++;
 	}
 	pAlmOidIdx= (int *)malloc(m+1);
 	m =0;
 	for(int i=0;i<g_tabLen-1;i++)
 	{
-		printf("g_devDataTab[i].oid=:%d\n",(int)g_devDataTab[i].oid);
-		if(g_devDataTab[i].treatOption == ALM_20)
+		if(g_devDataTab[i].dataOption == ALM_20)
 		{
 			pAlmOidIdx[m++]=i;
 		}
-
 	}
-	pAlmOidIdx[cnt]=0xffff;
-//	printf("pAlmOidIdx[0]=:%d\n",pAlmOidIdx[0]);
-//	printf("pAlmOidIdx[1]=:%d\n",pAlmOidIdx[1]);
-//	printf("pAlmOidIdx[2]=:%d\n",pAlmOidIdx[2]);
+	pAlmOidIdx[m]=0xffff;
 }
 
 void dataReport_treat(void)
 {
+	getTime(&g_currentTime[0]);
+	for(int i=0;i<g_tabLen-1;i++)
+	{
+		if(g_devDataTab[i].upSentPeriod ==0)continue;
+		if((g_reportTimeCnt%g_devDataTab[i].upSentPeriod)!=0)continue;
+		if(g_devDataTab[i].belongToOid>10)continue;
+		formJsonPacket(i);
+		//printf("dataReport :g_devDataTab[i].oid=:%d\n",g_devDataTab[i].oid);
+	}
+}
+void formJsonPacket(int idx)
+{
+	char *tmp;
+//	double dValue;
+	cJSON *jsonRoot=NULL;
+	cJSON *js_data =NULL;
+//	dValue =(double)g_devDataTab[idx].valueInt/g_devDataTab[idx].radio;
+//	gcvt(dValue,8,g_devDataTab[idx].valueString);
+	//sprintf(g_devDataTab[idx].valueString, "%08.2f", dValue);
+	//printf("oid =%d;valueInt=%d;valueString=%s\n",g_devDataTab[idx].oid,g_devDataTab[idx].valueInt,g_devDataTab[idx].valueString);
+
+	jsonRoot=cJSON_CreateObject();
+	//g_mqComVer ="v1.0";
+	cJSON_AddStringToObject(jsonRoot,"version",g_mqComVer);
+	cJSON_AddStringToObject(jsonRoot, "type",g_devDataTab[idx].ssType);
+	cJSON_AddStringToObject(jsonRoot, "id",g_mqComId);
+	cJSON_AddStringToObject(jsonRoot, "time",g_currentTime);
+	cJSON_AddItemToObject(jsonRoot, "data", js_data=cJSON_CreateObject());
+	if(g_devDataTab[idx].belongToOid !=1)
+	{
+		cJSON_AddStringToObject(js_data, g_devDataTab[idx].ssDataType,g_devDataTab[idx].valueString);
+	}
+	else
+	{
+		cJSON_AddStringToObject(js_data, g_devDataTab[idx].ssDataType,g_devDataTab[idx].valueString);
+		for(int i=0;i<g_tabLen-1;i++)
+		{
+			if(g_devDataTab[idx].oid ==g_devDataTab[i].belongToOid )
+			{
+				cJSON_AddStringToObject(js_data, g_devDataTab[i].ssDataType,g_devDataTab[i].valueString);
+			}
+		}
+}
+
+	 char *s = cJSON_PrintUnformatted(jsonRoot);
+	 printf("data:%s\n",s);
+	 free(s);
+	 cJSON_Delete(jsonRoot);
+	//printf(cJSON_Print(jsonTmp));
+	printf("\n");
+
+}
 
 
+void  getTime(char *temp)
+{
+	struct   tm     *ptm;
+	long       ts;
+	int         y,m,d,h,n,s;
+	char str[50]= {0};
+	char strTemp[10]= {0};
+
+	ts   =   time(NULL);
+	ptm   =   localtime(&ts);
+	y   =   ptm-> tm_year+1900;         //年
+	m   =   ptm-> tm_mon+1;             //月
+	d   =   ptm-> tm_mday;              //日
+	h   =   ptm-> tm_hour;              //时
+	n   =   ptm-> tm_min;               //分
+	s   =   ptm-> tm_sec;               //秒
+	sprintf(strTemp, "%d", y);
+	strcat(str,strTemp);
+	strcat(str,"-");
+	sprintf(strTemp, "%d", m);
+	strcat(str,strTemp);
+	strcat(str,"-");
+	sprintf(strTemp, "%d", d);
+	strcat(str,strTemp);
+	strcat(str," ");
+
+	sprintf(strTemp, "%d", h);
+	strcat(str,strTemp);
+	strcat(str,":");
+
+	sprintf(strTemp, "%d", n);
+	strcat(str,strTemp);
+	strcat(str,":");
+	sprintf(strTemp, "%d", s);
+	strcat(str,strTemp);
+	strcpy(temp,str);
+}
+void dataInt2String(void)
+{
+	double dValue;
+
+	for(int i=0;i<g_tabLen-1;i++)
+	{
+		dValue =(double)g_devDataTab[i].valueInt/g_devDataTab[i].radio;
+		gcvt(dValue,8,g_devDataTab[i].valueString);
+	}
 }
 
 

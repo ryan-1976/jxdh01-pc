@@ -94,7 +94,7 @@ typedef struct{
 	int upSentPeriod;
 	int belongToOid;
 	int mbAddr;
-	int treatOption;
+	int dataOption;
 	int belongOidIdx;
 	int mbDataLen;
 	int mbDataType;
@@ -109,5 +109,7 @@ typedef struct{
 extern int  get_oidIdx(int oid);
 extern devDataTable *g_devDataTab;
 extern int  g_tabLen;
+extern char *g_mqComVer;
+extern char *g_mqComId;
 #endif
 

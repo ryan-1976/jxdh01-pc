@@ -58,7 +58,7 @@ void sqTable_init(void)
     	  g_devDataTab[i].valueInt = atoi(pResult[nIndex+5]);
     	  g_devDataTab[i].valueIntPre =g_devDataTab[i].valueInt;
     	  g_devDataTab[i].upSentPeriod =atoi( pResult[nIndex+7]);
-    	  g_devDataTab[i].treatOption =atoi( pResult[nIndex+8]);
+    	  g_devDataTab[i].dataOption =atoi( pResult[nIndex+8]);
 
     	  g_devDataTab[i].belongToOid = atoi(pResult[nIndex+9]);
     	  g_devDataTab[i].belongOidIdx = atoi(pResult[nIndex+10]);
