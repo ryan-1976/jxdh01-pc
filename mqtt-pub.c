@@ -19,8 +19,8 @@
 #define PAYLOAD     "wgrt-data"
 #define QOS         1
 #define TIMEOUT     5000L
-char pubBuf[2048];
-extern MQTT_SENT_BUFF_T   mqSentBuff;
+
+extern MQTT_SENT_BUFF_T   mqBuff;
 
 //----------------------------------------------------------------------
 void *mqtt_pub_treat(int argc, char* argv[])
@@ -57,34 +57,53 @@ void *mqtt_pub_treat(int argc, char* argv[])
 		};
 		//printf("------mqpub waiting-------------------\n");
 
-		pthread_mutex_lock(&mqSentBuff.lock);
-		pthread_cond_wait(&mqSentBuff.newPacketFlag, &mqSentBuff.lock);
-
-		for(i =0;i<mqSentBuff.len;i++)
+		pthread_mutex_lock(&mqBuff.lock);
+		if(mqBuff.packetSum ==0)
 		{
-			pubBuf[i]= mqSentBuff.data[i];
+			pthread_cond_wait(&mqBuff.newPacketFlag, &mqBuff.lock);
 		}
 
-		pthread_mutex_unlock(&mqSentBuff.lock);
-		
-		if(mqSentBuff.mqttTopicFlag == MQTPA)
+		mqBuff.mqttTopicFlag=mq_circleBuff_ReadData();
+		mqBuff.mqttTopicFlag =mqBuff.mqttTopicFlag *256;
+		mqBuff.mqttTopicFlag +=mq_circleBuff_ReadData();
+
+		mqBuff.len=mq_circleBuff_ReadData();
+		mqBuff.len =mqBuff.len *256;
+		mqBuff.len +=mq_circleBuff_ReadData();
+
+		char * pubBuf= (char *)malloc(mqBuff.len+1);
+		for(i =0;i<mqBuff.len;i++)
 		{
-			MQTTClient_publish(client, TOPIC,mqSentBuff.len, pubBuf,QOS,0, &token);
+			pubBuf[i]= mq_circleBuff_ReadData();
+		}
+		if(mqBuff.packetSum >0)mqBuff.packetSum--;
+		pubBuf[i] =0;
+		pthread_mutex_unlock(&mqBuff.lock);
+		printf("out len=%d,%s\n",mqBuff.len,pubBuf);
+		//printf("pubbuf=%s\n",pubBuf);
+		
+
+		if(mqBuff.mqttTopicFlag == MQTPA)
+		{
+			MQTTClient_publish(client, TOPIC,mqBuff.len, pubBuf,QOS,0, &token);
 		}
 		else
 		{
-			MQTTClient_publish(client, TOPIC1,mqSentBuff.len, pubBuf,QOS,0, &token);
+			MQTTClient_publish(client, TOPIC1,mqBuff.len, pubBuf,QOS,0, &token);
 		}
+		//sleep(1);
 
+		free(pubBuf);
 //		 printf("Waiting for up to %d seconds for publication of %s\n"	 ""
 //				 "on topic %s for client with ClientID: %s\n",
 //		 (int)(TIMEOUT/1000), PAYLOAD, TOPIC, CLIENTID);
 		 rc = MQTTClient_waitForCompletion(client, token, TIMEOUT);
+
 //		 printf("Message with delivery token %d delivered\n", token);
 
 		//--------------------------------------
-		//sleep(2);
 		
+
 	}
 
     MQTTClient_disconnect(client, 10000);

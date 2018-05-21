@@ -24,7 +24,7 @@
 
 
 DATAS_BUFF_T   comBuff0; 
-MQTT_SENT_BUFF_T mqSentBuff;
+MQTT_SENT_BUFF_T mqBuff;
 RECV_BUFF_T RecvBuff4treat;
 pthread_mutex_t sqlWriteBufferLock;
 pthread_cond_t  sqlWritePacketFlag;
@@ -35,10 +35,14 @@ void G_Buff_init(void)
 {
     comBuff0.readPos = 0;
     comBuff0.writePos = 0;
+    mqBuff.readPos = 0;
+    mqBuff.writePos = 0;
+    mqBuff.packetSum = 0;
+
 	pthread_mutex_init(&comBuff0.lock, NULL);
 	pthread_cond_init(&comBuff0.newPacketFlag, NULL);
-	pthread_mutex_init(&mqSentBuff.lock, NULL);
-	pthread_cond_init(&mqSentBuff.newPacketFlag, NULL);
+	pthread_mutex_init(&mqBuff.lock, NULL);
+	pthread_cond_init(&mqBuff.newPacketFlag, NULL);
 	pthread_mutex_init(&RecvBuff4treat.lock, NULL);
 	pthread_cond_init(&RecvBuff4treat.newPacketFlag, NULL);
 	pthread_mutex_init(&sqlWriteBufferLock, NULL);
@@ -136,17 +140,19 @@ INT16U AP_circleBuff_ReadPacketData(void)
 						break;
 		case DTU2MQTPA:
 						//printf("----enter---DTU2MQTPA------------");
-						pthread_mutex_lock(&mqSentBuff.lock);
-
+						pthread_mutex_lock(&mqBuff.lock);
+						char * temp= (int *)malloc(dataLen);
 						for(i=0;i<dataLen;i++)
 						{
-							mqSentBuff.data[i]=AP_circleBuff_ReadData();
+							temp [i]=AP_circleBuff_ReadData();
+//							mqBuff.mqttTopicFlag = MQTPA;
+//							mqBuff.len = dataLen;
 						}
-						mqSentBuff.mqttTopicFlag = MQTPA;
-						mqSentBuff.len = dataLen;
+						mq_circleBuff_WritePacket(temp,dataLen,MQTPA);
+						free(temp);
 						//printf("-----DTU2MUTPA copy ok--------------\n");
-						pthread_cond_signal(&mqSentBuff.newPacketFlag);
-						pthread_mutex_unlock(&mqSentBuff.lock);
+						pthread_cond_signal(&mqBuff.newPacketFlag);
+						pthread_mutex_unlock(&mqBuff.lock);
 						break;
         default:
 
@@ -186,4 +192,66 @@ void AP_circleBuff_WritePacket(INT8U *s, INT16U len, INT16U port)
     }
 	// printf("\n");
 }
+unsigned char  mq_circleBuff_HaveData_Buff(void)
+{
+    if (mqBuff.readPos != mqBuff.writePos)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
+unsigned char  mq_circleBuff_WriteData(unsigned char data)
+{
+    unsigned long int  nextPos;
+	//printf("\n");
+	//printf("-----comBuff0.writePos= %d\n",comBuff0.writePos);
+    nextPos = (mqBuff.writePos + 1) % MQ_BUFF_LEN;
+    if (nextPos != mqBuff.readPos)
+    {
+    	mqBuff.data[mqBuff.writePos] = data;
+    	mqBuff.writePos = nextPos;
+        return 1;
+    }
+    else
+    {
+		//printf("-----enter--000000000000000000000 \n");
+        return 0;
+    }
+}
+unsigned char mq_circleBuff_ReadData(void)
+{
+    unsigned char dataTemp =0;
+
+    if (mq_circleBuff_HaveData_Buff() == 1)
+    {
+        dataTemp = mqBuff.data[mqBuff.readPos];
+        mqBuff.readPos = (mqBuff.readPos + 1) % MQ_BUFF_LEN;
+    }
+    return  dataTemp;
+}
+void mq_circleBuff_WritePacket(INT8U *s, INT16U len, INT16U port)
+{
+    unsigned int i;
+
+	// printf("\n");
+	// printf("-----enter--AP_circleBuff_WritePacket-------------- \n");
+	mq_circleBuff_WriteData((unsigned char) (port>>8));
+	mq_circleBuff_WriteData((unsigned char)port);
+
+	// printf("port=----------------- %d\n",port);
+    mq_circleBuff_WriteData((unsigned char) (len>>8));
+	mq_circleBuff_WriteData((unsigned char)len);
+	// printf("(len_h)=----------------- %d",(len>>8));
+	// printf("(len_l)=----------------- %d\n",len);
+	//printf("\n");
+    for (i=0; i<len; i++)
+    {
+        mq_circleBuff_WriteData(s[i]);
+		//printf("%x ",s[i]);
+    }
+	// printf("\n");
+}

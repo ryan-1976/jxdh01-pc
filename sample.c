@@ -17,12 +17,14 @@
 #include "cJSON.h"
 
 //extern devDataTable *g_devDataTab;
-extern DATAS_BUFF_T   comBuff0; 
+//extern DATAS_BUFF_T   comBuff0;
+extern MQTT_SENT_BUFF_T mqBuff;
 int *pAlmOidIdx;
 int *pReadOidIdx;
 INT32U g_reportTimeCnt=0;
 char g_currentTime[50]={0};
-
+static char  sMqNwepacketFlag=0;
+char tmp[50] ={0};
 void *sampleData_treat(void)
 {
 	int i;
@@ -30,13 +32,22 @@ void *sampleData_treat(void)
 
 	data_classification();
 
-
 	while(1)
 	{
-		g_reportTimeCnt=g_reportTimeCnt+100;
-		sleep(1);
-		dataInt2String();
-		dataReport_treat();
+
+			g_reportTimeCnt=g_reportTimeCnt+30;
+			sleep(1);
+			dataInt2String();
+
+			dataReport_treat();
+			pthread_mutex_lock(&mqBuff.lock);
+			if(sMqNwepacketFlag !=0)
+			{
+				pthread_cond_signal(&mqBuff.newPacketFlag);
+				sMqNwepacketFlag =0;
+			}
+			pthread_mutex_unlock(&mqBuff.lock);
+
 		//printf("---enter ---sampleData_treat----------\n");
 //		pthread_mutex_lock(&comBuff0.lock);
 //		spi2MqtttPacket();
@@ -70,6 +81,7 @@ void data_classification(void)
 void dataReport_treat(void)
 {
 	getTime(&g_currentTime[0]);
+
 	for(int i=0;i<g_tabLen-1;i++)
 	{
 		if(g_devDataTab[i].upSentPeriod ==0)continue;
@@ -81,7 +93,7 @@ void dataReport_treat(void)
 }
 void formJsonPacket(int idx)
 {
-	char *tmp;
+
 //	double dValue;
 	cJSON *jsonRoot=NULL;
 	cJSON *js_data =NULL;
@@ -94,7 +106,10 @@ void formJsonPacket(int idx)
 	//g_mqComVer ="v1.0";
 	cJSON_AddStringToObject(jsonRoot,"version",g_mqComVer);
 	cJSON_AddStringToObject(jsonRoot, "type",g_devDataTab[idx].ssType);
-	cJSON_AddStringToObject(jsonRoot, "id",g_mqComId);
+	strcat(tmp,g_mqComId);
+	strcat(tmp,g_devDataTab[idx].ssDevId);
+	cJSON_AddStringToObject(jsonRoot, "id",tmp);
+	tmp[0]=0;
 	cJSON_AddStringToObject(jsonRoot, "time",g_currentTime);
 	cJSON_AddItemToObject(jsonRoot, "data", js_data=cJSON_CreateObject());
 	if(g_devDataTab[idx].belongToOid !=1)
@@ -113,9 +128,16 @@ void formJsonPacket(int idx)
 		}
 }
 
-	 char *s = cJSON_PrintUnformatted(jsonRoot);
-	 printf("data:%s\n",s);
-	 free(s);
+	char *s = cJSON_PrintUnformatted(jsonRoot);
+//	printf("int datalen=%d,%s\n",strlen(s),s);
+	pthread_mutex_lock(&mqBuff.lock);
+	mq_circleBuff_WritePacket(s,strlen(s),DTU2MQTPA);
+	mqBuff.packetSum++;
+	sMqNwepacketFlag=1;
+	//pthread_cond_signal(&mqBuff.newPacketFlag);
+	pthread_mutex_unlock(&mqBuff.lock);
+	free(s);
+
 	 cJSON_Delete(jsonRoot);
 	//printf(cJSON_Print(jsonTmp));
 	printf("\n");

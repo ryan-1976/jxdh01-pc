@@ -20,7 +20,7 @@
 
 //#define   TZigbee_PACK_HEAD       0xA5
 #define   MAX_BUFF_LEN            102400
-#define   MQ_SENT_BUFF_LEN        20240
+#define   MQ_BUFF_LEN             20240
 #define   RECV_BUFF_LEN           2024
 #define   MAX_PACKET_BUFF_LEN     2100  
 #define BUSY 1;
@@ -70,11 +70,14 @@ typedef struct
 }DATAS_BUFF_T;
 typedef struct
 {
-    unsigned char   data[MQ_SENT_BUFF_LEN];
+	volatile unsigned long int    readPos;
+	volatile unsigned long int    writePos;
+    unsigned char   data[MQ_BUFF_LEN];
     unsigned char   mqttTopicFlag;
     unsigned int    len;
 	pthread_mutex_t lock;
 	pthread_cond_t  newPacketFlag;
+	unsigned int    packetSum;
 }MQTT_SENT_BUFF_T;
 typedef struct
 {
@@ -98,7 +101,8 @@ typedef struct{
 	int belongOidIdx;
 	int mbDataLen;
 	int mbDataType;
-	char valueString[15];
+	char ssDevId[5];
+	char valueString[10];
 	char ssType[30];
 	char ssDataType[30];
 	char resouceMap[30];

@@ -15,7 +15,7 @@ void sqTable_init(void)
 	int nRow,nCol,nResult;
 	char* errmsg;
 	//nResult = sqlite3_open_v2("jxdh01-v01.db",&pdb,SQLITE_OPEN_READWRITE,NULL);
-	nResult = sqlite3_open_v2("/home/ryan/share2win/jxdh01-v01.db",&pdb,SQLITE_OPEN_READWRITE,NULL);
+	nResult = sqlite3_open_v2("/home/ryan/share2win/jxdh01-v02.db",&pdb,SQLITE_OPEN_READWRITE,NULL);
     if(nResult)
     {
             fprintf(stderr,"can't open database:%s\n",sqlite3_errmsg(pdb));
@@ -55,7 +55,9 @@ void sqTable_init(void)
     	  strcpy(g_devDataTab[i].ssType,pResult[nIndex+2]);
     	  strcpy(g_devDataTab[i].ssTypeCnName,pResult[nIndex+3]);
     	  strcpy(g_devDataTab[i].ssDataType,pResult[nIndex+4]);
-    	  g_devDataTab[i].valueInt = atoi(pResult[nIndex+5]);
+    	  strcpy(g_devDataTab[i].ssDevId,pResult[nIndex+5]);
+
+    	  g_devDataTab[i].valueInt = atoi(pResult[nIndex+6]);
     	  g_devDataTab[i].valueIntPre =g_devDataTab[i].valueInt;
     	  g_devDataTab[i].upSentPeriod =atoi( pResult[nIndex+7]);
     	  g_devDataTab[i].dataOption =atoi( pResult[nIndex+8]);
