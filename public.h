@@ -109,10 +109,16 @@ typedef struct{
 	char oidName[50];
 
 }devDataTable;
+
+typedef struct{
+
+	char name[30];
+	char content[50];
+}DevCfgTable;
 extern int  get_oidIdx(int oid);
 extern devDataTable *g_devDataTab;
 extern int  g_tabLen;
 extern char *g_mqComVer;
-extern char *g_mqComId;
+extern char g_mqComId[];
 #endif
 
