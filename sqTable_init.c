@@ -26,19 +26,18 @@ void sqTable_init(void)
     char * strSql = "select * from devData";
     nResult = sqlite3_get_table(pdb,strSql,&pResult,&nRow,&nCol,&errmsg);
     if (nResult != SQLITE_OK)
-  {
+   {
       sqlite3_close(pdb);
-
       sqlite3_free(errmsg);
       return ;
   }
-    printf("sqlite3_get_table ok\n");
+
 
   int nIndex = nCol;
 
   g_tabLen = nRow-1;
 
-
+  printf("sqlite3_get_table ok g_tabLen=%d\n",g_tabLen);
   if ((g_devDataTab = (devDataTable *)malloc(g_tabLen * sizeof(devDataTable))) == NULL)    {
 
          printf("malloc g_devDataTab error\n");
@@ -83,7 +82,7 @@ void sqTable_init(void)
   }
 
   sqlite3_free_table(pResult);
-  //printf(strOut);
+
   sqlite3_close(pdb);
     printf("open ok\n");
 

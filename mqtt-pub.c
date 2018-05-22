@@ -79,7 +79,7 @@ void *mqtt_pub_treat(int argc, char* argv[])
 		if(mqBuff.packetSum >0)mqBuff.packetSum--;
 		pubBuf[i] =0;
 		pthread_mutex_unlock(&mqBuff.lock);
-		printf("out len=%d,%s\n",mqBuff.len,pubBuf);
+		printf("len=%d,%s\n",mqBuff.len,pubBuf);
 		//printf("pubbuf=%s\n",pubBuf);
 		
 

@@ -48,7 +48,6 @@ typedef signed   int   INT32S;
 #define MQTPB        0X01
 
 #define SET_0        0
-#define SET_1        1
 
 #define READ_10      10
 #define READ_11      11
@@ -56,7 +55,7 @@ typedef signed   int   INT32S;
 #define READ_100     100
 
 #define ALM_20       20
-
+#define SET_1        1
 
 
 typedef struct

@@ -23,8 +23,9 @@ int *pAlmOidIdx;
 int *pReadOidIdx;
 INT32U g_reportTimeCnt=0;
 char g_currentTime[50]={0};
-static char  sMqNwepacketFlag=0;
+static char  sMqNewpacketFlag=0;
 char tmp[50] ={0};
+
 void *sampleData_treat(void)
 {
 	int i;
@@ -35,26 +36,18 @@ void *sampleData_treat(void)
 	while(1)
 	{
 
-			g_reportTimeCnt=g_reportTimeCnt+30;
+			g_reportTimeCnt=g_reportTimeCnt+100;
+			data4Test();
 			sleep(1);
 			dataInt2String();
-
 			dataReport_treat();
 			pthread_mutex_lock(&mqBuff.lock);
-			if(sMqNwepacketFlag !=0)
+			if(sMqNewpacketFlag !=0)
 			{
 				pthread_cond_signal(&mqBuff.newPacketFlag);
-				sMqNwepacketFlag =0;
+				sMqNewpacketFlag =0;
 			}
 			pthread_mutex_unlock(&mqBuff.lock);
-
-		//printf("---enter ---sampleData_treat----------\n");
-//		pthread_mutex_lock(&comBuff0.lock);
-//		spi2MqtttPacket();
-//		pthread_cond_signal(&comBuff0.newPacketFlag);
-//		pthread_mutex_unlock(&comBuff0.lock);
-
-
 	}
 }
 void data_classification(void)
@@ -121,26 +114,26 @@ void formJsonPacket(int idx)
 		cJSON_AddStringToObject(js_data, g_devDataTab[idx].ssDataType,g_devDataTab[idx].valueString);
 		for(int i=0;i<g_tabLen-1;i++)
 		{
+			if(g_devDataTab[i].upSentPeriod ==0)continue;
 			if(g_devDataTab[idx].oid ==g_devDataTab[i].belongToOid )
 			{
 				cJSON_AddStringToObject(js_data, g_devDataTab[i].ssDataType,g_devDataTab[i].valueString);
 			}
 		}
 }
-
-	char *s = cJSON_PrintUnformatted(jsonRoot);
-//	printf("int datalen=%d,%s\n",strlen(s),s);
+	char *s =NULL;
+	s =(char *) cJSON_PrintUnformatted(jsonRoot);
+	//printf("int datalen=%d,%s\n",strlen(s),s);
 	pthread_mutex_lock(&mqBuff.lock);
 	mq_circleBuff_WritePacket(s,strlen(s),DTU2MQTPA);
 	mqBuff.packetSum++;
-	sMqNwepacketFlag=1;
-	//pthread_cond_signal(&mqBuff.newPacketFlag);
+	sMqNewpacketFlag=1;
+	pthread_cond_signal(&mqBuff.newPacketFlag);
 	pthread_mutex_unlock(&mqBuff.lock);
-	free(s);
 
-	 cJSON_Delete(jsonRoot);
+    cJSON_Delete(jsonRoot);
 	//printf(cJSON_Print(jsonTmp));
-	printf("\n");
+	//printf("\n");
 
 }
 
@@ -164,20 +157,23 @@ void  getTime(char *temp)
 	sprintf(strTemp, "%d", y);
 	strcat(str,strTemp);
 	strcat(str,"-");
+	if(m<10)strcat(str,"0");
 	sprintf(strTemp, "%d", m);
 	strcat(str,strTemp);
 	strcat(str,"-");
+	if(d<10)strcat(str,"0");
 	sprintf(strTemp, "%d", d);
 	strcat(str,strTemp);
 	strcat(str," ");
-
+	if(h<10)strcat(str,"0");
 	sprintf(strTemp, "%d", h);
 	strcat(str,strTemp);
 	strcat(str,":");
-
+	if(n<10)strcat(str,"0");
 	sprintf(strTemp, "%d", n);
 	strcat(str,strTemp);
 	strcat(str,":");
+	if(s<10)strcat(str,"0");
 	sprintf(strTemp, "%d", s);
 	strcat(str,strTemp);
 	strcpy(temp,str);
@@ -190,7 +186,15 @@ void dataInt2String(void)
 	{
 		dValue =(double)g_devDataTab[i].valueInt/g_devDataTab[i].radio;
 		gcvt(dValue,8,g_devDataTab[i].valueString);
+	//	printf("g_devDataTab[i].valueString=%s\n",g_devDataTab[i].valueString);
 	}
 }
-
+void data4Test(void)
+{
+	for(int i=0;i<g_tabLen-1;i++)
+	{
+		 if(g_devDataTab[i].dataOption !=ALM_20 && g_devDataTab[i].dataOption !=SET_1 )
+			g_devDataTab[i].valueInt =i;
+	}
+}
 

@@ -20,7 +20,7 @@ int main()
 	pthread_t th_a, th_b,th_c,th_d,th_e,th_f;
 	void *retval;
 
-	json_init();
+	//json_init();
 	sqTable_init();
 	G_Buff_init();
 	//tabProc();
