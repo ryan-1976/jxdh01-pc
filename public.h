@@ -19,9 +19,9 @@
 #define _AP_PUBLIC_INCLUDED_
 
 //#define   TZigbee_PACK_HEAD       0xA5
-#define   MAX_BUFF_LEN            102400
-#define   MQ_BUFF_LEN             20240
-#define   RECV_BUFF_LEN           2024
+#define   MAX_BUFF_LEN            40960
+#define   MQ_BUFF_LEN             20480
+#define   RECV_BUFF_LEN           2048
 #define   MAX_PACKET_BUFF_LEN     2100  
 #define BUSY 1;
 #define IDLE 0;
@@ -34,22 +34,18 @@ typedef signed   short INT16S;
 typedef unsigned int   INT32U;                  
 typedef signed   int   INT32S;                 
 
-#define CDTU       0X01
-#define MQTT       0X02
-#define UDP        0X03
-#define MODEM      0X04
-#define SERIAL1    0X05
+#define DTU        0X01
+#define MQTR       0X02
+#define MQTC       0X03
+#define UDP        0X04
+#define MODEM      0X05
+#define SERIAL1    0X06
 
-#define MQTPA2DTU    0X0201
-#define DTU2MQTPA    0X0102
-#define MQTPB2DTU    0X0301
-#define DTU2MQTPB    0X0103
 
-#define DTU2MQTPR    0X0104
-#define DTU2MQTPC    0X0105
+#define DTU2MQTPR    0X0102
+#define DTU2MQTPC    0X0103
+#define MQTPC2DTU    0X0301
 
-#define MQTPA        0X00
-#define MQTPB        0X01
 #define MQTP_REPORT  0X04
 #define MQTP_CTRL    0X05
 
@@ -131,5 +127,6 @@ extern char g_mqTopicReport[];
 extern char g_mqTopicCtrl[];
 extern char g_mqServer[];
 extern char g_mqClientId[];
+extern  RECV_BUFF_T RecvBuff4treat;
 #endif
 

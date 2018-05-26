@@ -30,7 +30,8 @@ void *sampleData_treat(void)
 	data_classification();
 	while(1)
 	{
-			g_reportTimeCnt++;
+			//g_reportTimeCnt++;
+			g_reportTimeCnt=g_reportTimeCnt+10;
 			data4Test();
 			sleep(1);
 			dataInt2String();
@@ -71,7 +72,7 @@ void dataReport_treat(void)
 	for(int i=0;i<g_tabLen;i++)
 	{
 		if(g_devDataTab[i].upSentPeriod ==0)continue;
-		//if((g_reportTimeCnt%g_devDataTab[i].upSentPeriod)!=0)continue;
+		if((g_reportTimeCnt%g_devDataTab[i].upSentPeriod)!=0)continue;
 		if(g_devDataTab[i].belongToOid>10)continue;
 	    formJsonPacket(i);
 	}
@@ -96,8 +97,8 @@ void formJsonPacket(int idx)
 void  getTime(char *temp)
 {
 	struct   tm     *ptm;
-	long       ts;
-	int         y,m,d,h,n,s;
+	long ts;
+	int   y,m,d,h,n,s;
 	char str[50]= {0};
 	char strTemp[10]= {0};
 
@@ -184,6 +185,7 @@ char *getJson(int idx)
 			}
     	}
 		p = cJSON_PrintUnformatted(jsonRoot);
+
 	end:
 		cJSON_Delete(jsonRoot);
         return p;

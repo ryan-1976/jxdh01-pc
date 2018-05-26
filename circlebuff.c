@@ -65,20 +65,17 @@ unsigned char  AP_circleBuff_HaveData_Buff(void)
 unsigned char  AP_circleBuff_WriteData(unsigned char data)
 {
     unsigned long int  nextPos;
-	//printf("\n");
 	//printf("-----comBuff0.writePos= %d\n",comBuff0.writePos);
     nextPos = (comBuff0.writePos + 1) % MAX_BUFF_LEN;
     if (nextPos != comBuff0.readPos)    // �жϻ����Ƿ���
     {
         comBuff0.data[comBuff0.writePos] = data;
         comBuff0.writePos = nextPos;
-		//printf("-----enter--1111111111111111111111111 \n");
-        return 1;
-		
+		 return 1;
+
     }
     else
     {
-		//printf("-----enter--000000000000000000000 \n");
         return 0;
     }
 }
@@ -124,21 +121,21 @@ INT16U AP_circleBuff_ReadPacketData(void)
     }
 	switch(port)
 	{
-		case MQTPA2DTU:
-			            //printf("-enter-MQTPA2DTU-----------------");
+		case MQTPC2DTU:
+			          //  printf("-enter-MQTPA2DTU-----------------");
 						pthread_mutex_lock(&RecvBuff4treat.lock);
 						for(i=0;i<dataLen;i++)
 						{
 							RecvBuff4treat.data[i]=AP_circleBuff_ReadData();
 						}
 						RecvBuff4treat.protoltype = 0;
-						RecvBuff4treat.scrFlag = MQTPA;
+						RecvBuff4treat.scrFlag = MQTPC2DTU;
 						RecvBuff4treat.len = dataLen;
 						//printf("--MQTPA2DTU--copy ok---------\n");
 						pthread_cond_signal(&RecvBuff4treat.newPacketFlag);
 						pthread_mutex_unlock(&RecvBuff4treat.lock);
 						break;
-		case DTU2MQTPA:
+		case DTU2MQTPR:
 						//printf("----enter---DTU2MQTPA------------");
 						pthread_mutex_lock(&mqBuff.lock);
 						char * temp= (int *)malloc(dataLen);
@@ -148,7 +145,7 @@ INT16U AP_circleBuff_ReadPacketData(void)
 //							mqBuff.mqttTopicFlag = MQTPA;
 //							mqBuff.len = dataLen;
 						}
-						mq_circleBuff_WritePacket(temp,dataLen,MQTPA);
+						mq_circleBuff_WritePacket(temp,dataLen,DTU2MQTPR);
 						free(temp);
 						//printf("-----DTU2MUTPA copy ok--------------\n");
 						pthread_cond_signal(&mqBuff.newPacketFlag);

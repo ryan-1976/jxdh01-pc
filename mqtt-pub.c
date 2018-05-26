@@ -29,15 +29,16 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *m
     int i;
     char* payloadptr;
 
-    printf(" new mqtt Message arrived:");
-    printf(" topic: %s", topicName);
-	printf(" topicLen:%d\n ",message->payloadlen);
-
+//    printf(" new mqtt Message arrived:");
+//    printf(" topic: %s", topicName);
+//	printf(" topicLen:%d\n ",message->payloadlen);
+    //printf(" mq recv message=%s\n ",message->payload);
     payloadptr = message->payload;
+
 
 	pthread_mutex_lock(&comBuff0.lock);
 
-	AP_circleBuff_WritePacket(payloadptr++,message->payloadlen,MQTPA2DTU);
+	AP_circleBuff_WritePacket(payloadptr,message->payloadlen,MQTPC2DTU);
 	pthread_cond_signal(&comBuff0.newPacketFlag);
 	pthread_mutex_unlock(&comBuff0.lock);
 
@@ -52,7 +53,7 @@ void connlost(void *context, char *cause)
 }
 
 //----------------------------------------------------------------------
-void *mqtt_pub_treat(int argc, char* argv[])
+void *mqttPubThread(int argc, char* argv[])
 {
     MQTTClient client;
     MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
@@ -114,18 +115,18 @@ void *mqtt_pub_treat(int argc, char* argv[])
 		//printf("len=%d,%s\n",mqBuff.len,pubBuf);
 		//printf("pubbuf=%s\n",pubBuf);
 		
-		//g_test++;
+		g_test++;
 	//	printf("g_test=%d\n",g_test);
 
 		if(mqBuff.mqttTopicFlag == MQTP_REPORT)
 		{
 			MQTTClient_publish(client, g_mqTopicReport,mqBuff.len, pubBuf,QOS,0, &token);
-			printf("1%s\n",pubBuf);
+			printf("%s\n",pubBuf);
 		}
 		else
 		{
 			MQTTClient_publish(client, g_mqTopicCtrl,mqBuff.len, pubBuf,QOS,0, &token);
-			printf("2%s\n",pubBuf);
+			printf("%s\n",pubBuf);
 		}
 		pthread_mutex_unlock(&mqBuff.lock);
 		//usleep(1000);
