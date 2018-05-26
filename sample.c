@@ -15,28 +15,22 @@
 #include "circlebuff.h"
 #include "public.h"
 #include "cJSON.h"
-
-//extern devDataTable *g_devDataTab;
-//extern DATAS_BUFF_T   comBuff0;
+char *getJson(int idx);
 extern MQTT_SENT_BUFF_T mqBuff;
-int *pAlmOidIdx;
+int pAlmOidIdx[500];
 int *pReadOidIdx;
 INT32U g_reportTimeCnt=0;
 char g_currentTime[50]={0};
 static char  sMqNewpacketFlag=0;
 char tmp[50] ={0};
+char str[1500]={0};
 
 void *sampleData_treat(void)
 {
-	int i;
-
-
 	data_classification();
-
 	while(1)
 	{
-
-			g_reportTimeCnt=g_reportTimeCnt+100;
+			g_reportTimeCnt++;
 			data4Test();
 			sleep(1);
 			dataInt2String();
@@ -55,13 +49,13 @@ void data_classification(void)
 	int m=0;
 	int n=0;
 
-	for(int i=0;i<g_tabLen-1;i++)
+	for(int i=0;i<g_tabLen;i++)
 	{
 		if(g_devDataTab[i].dataOption == ALM_20)m++;
 	}
-	pAlmOidIdx= (int *)malloc(m+1);
+	//pAlmOidIdx= (int *)malloc(m+1);
 	m =0;
-	for(int i=0;i<g_tabLen-1;i++)
+	for(int i=0;i<g_tabLen;i++)
 	{
 		if(g_devDataTab[i].dataOption == ALM_20)
 		{
@@ -74,67 +68,28 @@ void data_classification(void)
 void dataReport_treat(void)
 {
 	getTime(&g_currentTime[0]);
-
-	for(int i=0;i<g_tabLen-1;i++)
+	for(int i=0;i<g_tabLen;i++)
 	{
 		if(g_devDataTab[i].upSentPeriod ==0)continue;
-		if((g_reportTimeCnt%g_devDataTab[i].upSentPeriod)!=0)continue;
+		//if((g_reportTimeCnt%g_devDataTab[i].upSentPeriod)!=0)continue;
 		if(g_devDataTab[i].belongToOid>10)continue;
-		formJsonPacket(i);
-		//printf("dataReport :g_devDataTab[i].oid=:%d\n",g_devDataTab[i].oid);
+	    formJsonPacket(i);
 	}
 }
 void formJsonPacket(int idx)
 {
-
-//	double dValue;
-	cJSON *jsonRoot=NULL;
-	cJSON *js_data =NULL;
-//	dValue =(double)g_devDataTab[idx].valueInt/g_devDataTab[idx].radio;
-//	gcvt(dValue,8,g_devDataTab[idx].valueString);
-	//sprintf(g_devDataTab[idx].valueString, "%08.2f", dValue);
-	//printf("oid =%d;valueInt=%d;valueString=%s\n",g_devDataTab[idx].oid,g_devDataTab[idx].valueInt,g_devDataTab[idx].valueString);
-
-	jsonRoot=cJSON_CreateObject();
-	//g_mqComVer ="v1.0";
-	cJSON_AddStringToObject(jsonRoot,"version",g_mqComVer);
-	cJSON_AddStringToObject(jsonRoot, "type",g_devDataTab[idx].ssType);
-	strcat(tmp,g_mqComId);
-	strcat(tmp,g_devDataTab[idx].ssDevId);
-	cJSON_AddStringToObject(jsonRoot, "id",tmp);
-	tmp[0]=0;
-	cJSON_AddStringToObject(jsonRoot, "time",g_currentTime);
-	cJSON_AddItemToObject(jsonRoot, "data", js_data=cJSON_CreateObject());
-	if(g_devDataTab[idx].belongToOid !=1)
-	{
-		cJSON_AddStringToObject(js_data, g_devDataTab[idx].ssDataType,g_devDataTab[idx].valueString);
-	}
-	else
-	{
-		cJSON_AddStringToObject(js_data, g_devDataTab[idx].ssDataType,g_devDataTab[idx].valueString);
-		for(int i=0;i<g_tabLen-1;i++)
-		{
-			if(g_devDataTab[i].upSentPeriod ==0)continue;
-			if(g_devDataTab[idx].oid ==g_devDataTab[i].belongToOid )
-			{
-				cJSON_AddStringToObject(js_data, g_devDataTab[i].ssDataType,g_devDataTab[i].valueString);
-			}
-		}
-}
-	char *s =NULL;
-	s =(char *) cJSON_PrintUnformatted(jsonRoot);
-	//printf("int datalen=%d,%s\n",strlen(s),s);
+	char *s = getJson(idx);
+	//printf("%s\n",s);
+	strcpy(str,s);
+    free(s);
 	pthread_mutex_lock(&mqBuff.lock);
-	mq_circleBuff_WritePacket(s,strlen(s),DTU2MQTPA);
-	mqBuff.packetSum++;
-	sMqNewpacketFlag=1;
-	pthread_cond_signal(&mqBuff.newPacketFlag);
+	if(strlen(str)>0)
+	{
+		mq_circleBuff_WritePacket(str,strlen(str),MQTP_REPORT);
+		mqBuff.packetSum++;
+		sMqNewpacketFlag=1;
+	}
 	pthread_mutex_unlock(&mqBuff.lock);
-
-    cJSON_Delete(jsonRoot);
-	//printf(cJSON_Print(jsonTmp));
-	//printf("\n");
-
 }
 
 
@@ -182,7 +137,7 @@ void dataInt2String(void)
 {
 	double dValue;
 
-	for(int i=0;i<g_tabLen-1;i++)
+	for(int i=0;i<g_tabLen;i++)
 	{
 		dValue =(double)g_devDataTab[i].valueInt/g_devDataTab[i].radio;
 		gcvt(dValue,8,g_devDataTab[i].valueString);
@@ -191,10 +146,45 @@ void dataInt2String(void)
 }
 void data4Test(void)
 {
-	for(int i=0;i<g_tabLen-1;i++)
+	for(int i=0;i<g_tabLen;i++)
 	{
 		 if(g_devDataTab[i].dataOption !=ALM_20 && g_devDataTab[i].dataOption !=SET_1 )
 			g_devDataTab[i].valueInt =i;
 	}
 }
-
+char *getJson(int idx)
+{
+		cJSON *jsonRoot=NULL;
+		cJSON *js_data =NULL;
+		char *p = NULL;
+		jsonRoot=cJSON_CreateObject();
+		if (jsonRoot == NULL)goto end;
+		cJSON_AddStringToObject(jsonRoot,"version",g_mqComVer);
+		cJSON_AddStringToObject(jsonRoot, "type",g_devDataTab[idx].ssType);
+		strcat(tmp,g_mqComId);
+		strcat(tmp,g_devDataTab[idx].ssDevId);
+		cJSON_AddStringToObject(jsonRoot, "id",tmp);
+		tmp[0]=0;
+		cJSON_AddStringToObject(jsonRoot, "time",g_currentTime);
+		cJSON_AddItemToObject(jsonRoot, "data", js_data=cJSON_CreateObject());
+		if(g_devDataTab[idx].belongToOid !=1)
+		{
+			cJSON_AddStringToObject(js_data, g_devDataTab[idx].ssDataType,g_devDataTab[idx].valueString);
+		}
+		else
+		{
+			cJSON_AddStringToObject(js_data, g_devDataTab[idx].ssDataType,g_devDataTab[idx].valueString);
+			for(int m=0;m<g_tabLen;m++)
+	 		{
+				if(g_devDataTab[m].upSentPeriod ==0)continue;
+				if(g_devDataTab[idx].oid ==g_devDataTab[m].belongToOid)
+				{
+					cJSON_AddStringToObject(js_data, g_devDataTab[m].ssDataType,g_devDataTab[m].valueString);
+				}
+			}
+    	}
+		p = cJSON_PrintUnformatted(jsonRoot);
+	end:
+		cJSON_Delete(jsonRoot);
+        return p;
+}

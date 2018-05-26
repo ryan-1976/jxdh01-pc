@@ -44,8 +44,14 @@ typedef signed   int   INT32S;
 #define DTU2MQTPA    0X0102
 #define MQTPB2DTU    0X0301
 #define DTU2MQTPB    0X0103
+
+#define DTU2MQTPR    0X0104
+#define DTU2MQTPC    0X0105
+
 #define MQTPA        0X00
 #define MQTPB        0X01
+#define MQTP_REPORT  0X04
+#define MQTP_CTRL    0X05
 
 #define SET_0        0
 
@@ -120,5 +126,10 @@ extern devDataTable *g_devDataTab;
 extern int  g_tabLen;
 extern char *g_mqComVer;
 extern char g_mqComId[];
+
+extern char g_mqTopicReport[];
+extern char g_mqTopicCtrl[];
+extern char g_mqServer[];
+extern char g_mqClientId[];
 #endif
 

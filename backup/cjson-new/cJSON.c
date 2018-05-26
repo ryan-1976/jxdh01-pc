@@ -169,9 +169,6 @@ static unsigned char* cJSON_strdup(const unsigned char* string, const internal_h
 
 CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks)
 {
-
-//	printf("123111111111111111111111111111111111");
-//	while(1);
     if (hooks == NULL)
     {
         /* Reset hooks */

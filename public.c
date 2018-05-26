@@ -7,7 +7,7 @@
 
 int  get_oidValue(int oid)
 {
-	for(int i=0;i<g_tabLen-1;i++)
+	for(int i=0;i<g_tabLen;i++)
 	{
 		if(g_devDataTab[i].oid == oid)
 			return g_devDataTab[i].valueInt;
@@ -17,7 +17,7 @@ int  get_oidValue(int oid)
 }
 int  get_oidIdx(int oid)
 {
-	for(int i=0;i<g_tabLen-1;i++)
+	for(int i=0;i<g_tabLen;i++)
 	{
 		if(g_devDataTab[i].oid == oid)
 			return i;
