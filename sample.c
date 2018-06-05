@@ -25,26 +25,7 @@ static char  sMqNewpacketFlag=0;
 char tmp[50] ={0};
 char str[1500]={0};
 
-void *sampleData_treat(void)
-{
-	data_classification();
-	while(1)
-	{
-			//g_reportTimeCnt++;
-			g_reportTimeCnt=g_reportTimeCnt+10;
-			data4Test();
-			sleep(1);
-			dataInt2String();
-			dataReport_treat();
-			pthread_mutex_lock(&mqBuff.lock);
-			if(sMqNewpacketFlag !=0)
-			{
-				pthread_cond_signal(&mqBuff.newPacketFlag);
-				sMqNewpacketFlag =0;
-			}
-			pthread_mutex_unlock(&mqBuff.lock);
-	}
-}
+
 void data_classification(void)
 {
 	int m=0;
@@ -189,4 +170,26 @@ char *getJson(int idx)
 	end:
 		cJSON_Delete(jsonRoot);
         return p;
+}
+
+void *sampleData_treat(void)
+{
+	data_classification();
+	//testCrc32();
+	while(1)
+	{
+			//g_reportTimeCnt++;
+			g_reportTimeCnt=g_reportTimeCnt+10;
+			data4Test();
+			sleep(1);
+			dataInt2String();
+			dataReport_treat();
+			pthread_mutex_lock(&mqBuff.lock);
+			if(sMqNewpacketFlag !=0)
+			{
+				pthread_cond_signal(&mqBuff.newPacketFlag);
+				sMqNewpacketFlag =0;
+			}
+			pthread_mutex_unlock(&mqBuff.lock);
+	}
 }

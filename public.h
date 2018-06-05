@@ -21,7 +21,7 @@
 //#define   TZigbee_PACK_HEAD       0xA5
 #define   MAX_BUFF_LEN            40960
 #define   MQ_BUFF_LEN             20480
-#define   RECV_BUFF_LEN           2048
+#define   RECV_BUFF_LEN           10240
 #define   MAX_PACKET_BUFF_LEN     2100  
 #define BUSY 1;
 #define IDLE 0;
@@ -45,6 +45,7 @@ typedef signed   int   INT32S;
 #define DTU2MQTPR    0X0102
 #define DTU2MQTPC    0X0103
 #define MQTPC2DTU    0X0301
+#define MQTPD2DTU    0X0401
 
 #define MQTP_REPORT  0X04
 #define MQTP_CTRL    0X05
@@ -74,7 +75,7 @@ typedef struct
 	volatile unsigned long int    readPos;
 	volatile unsigned long int    writePos;
     unsigned char   data[MQ_BUFF_LEN];
-    unsigned char   mqttTopicFlag;
+    unsigned int   mqttTopicFlag;
     unsigned int    len;
 	pthread_mutex_t lock;
 	pthread_cond_t  newPacketFlag;
@@ -83,8 +84,8 @@ typedef struct
 typedef struct
 {
     unsigned char   data[RECV_BUFF_LEN];
-    unsigned char   protoltype;
-    unsigned char   scrFlag;//data from where
+    unsigned int   protoltype;
+    unsigned int   scrFlag;//data from where
     unsigned int    len;
 	pthread_mutex_t lock;
 	pthread_cond_t  newPacketFlag;
@@ -112,12 +113,29 @@ typedef struct{
 
 }devDataTable;
 
+typedef struct
+{
+    unsigned int   fileLen;
+    unsigned int   pkMaxLen;
+    unsigned int   pkSum;
+    unsigned int   pkCrc;
+    unsigned int   curPkIndx;
+    unsigned int   curState;
+    char           dlName[50];
+}DOWNLOAD;
+
 typedef struct{
 
 	char name[30];
 	char content[50];
 }DevCfgTable;
 extern int  get_oidIdx(int oid);
+extern int  get_typeValue(char *ssType);
+extern void testCrc32(void);
+extern INT32U caculate_crc( unsigned char *string, INT32U size);
+extern int base64_decode( const char * base64, unsigned char * bindata );
+//extern void calc_img_crc(void);
+
 extern devDataTable *g_devDataTab;
 extern int  g_tabLen;
 extern char *g_mqComVer;
@@ -128,5 +146,6 @@ extern char g_mqTopicCtrl[];
 extern char g_mqServer[];
 extern char g_mqClientId[];
 extern  RECV_BUFF_T RecvBuff4treat;
+
 #endif
 

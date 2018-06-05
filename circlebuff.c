@@ -128,6 +128,7 @@ INT16U AP_circleBuff_ReadPacketData(void)
 						{
 							RecvBuff4treat.data[i]=AP_circleBuff_ReadData();
 						}
+						RecvBuff4treat.data[i]=0;
 						RecvBuff4treat.protoltype = 0;
 						RecvBuff4treat.scrFlag = MQTPC2DTU;
 						RecvBuff4treat.len = dataLen;

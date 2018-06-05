@@ -12,7 +12,7 @@
 //#define PAYLOAD     "wgrt-data"
 #define QOS         1
 #define TIMEOUT     5000L
-
+const char *g_mqTopicDl="jianxin/baiyun_0002/control";
 extern MQTT_SENT_BUFF_T   mqBuff;
 extern DATAS_BUFF_T   comBuff0;
 volatile MQTTClient_deliveryToken deliveredtoken;
@@ -28,7 +28,6 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *m
 {
     int i;
     char* payloadptr;
-
 //    printf(" new mqtt Message arrived:");
 //    printf(" topic: %s", topicName);
 //	printf(" topicLen:%d\n ",message->payloadlen);
@@ -37,7 +36,6 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *m
 
 
 	pthread_mutex_lock(&comBuff0.lock);
-
 	AP_circleBuff_WritePacket(payloadptr,message->payloadlen,MQTPC2DTU);
 	pthread_cond_signal(&comBuff0.newPacketFlag);
 	pthread_mutex_unlock(&comBuff0.lock);
@@ -75,7 +73,7 @@ void *mqttPubThread(int argc, char* argv[])
 	}
 	printf("Sub topic: %s\nfor clientId: %s using QoS%d\n\n", g_mqTopicCtrl, g_mqClientId, QOS);
 	MQTTClient_subscribe(client, g_mqTopicCtrl, QOS);
-
+	MQTTClient_subscribe(client, g_mqTopicDl, QOS);
 
 	while(1)
 	{
@@ -121,12 +119,12 @@ void *mqttPubThread(int argc, char* argv[])
 		if(mqBuff.mqttTopicFlag == MQTP_REPORT)
 		{
 			MQTTClient_publish(client, g_mqTopicReport,mqBuff.len, pubBuf,QOS,0, &token);
-			printf("%s\n",pubBuf);
+			//printf("%s\n",pubBuf);
 		}
 		else
 		{
 			MQTTClient_publish(client, g_mqTopicCtrl,mqBuff.len, pubBuf,QOS,0, &token);
-			printf("%s\n",pubBuf);
+			//printf("%s\n",pubBuf);
 		}
 		pthread_mutex_unlock(&mqBuff.lock);
 		//usleep(1000);
