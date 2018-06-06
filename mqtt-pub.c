@@ -73,7 +73,8 @@ void *mqttPubThread(int argc, char* argv[])
 	}
 	printf("Sub topic: %s\nfor clientId: %s using QoS%d\n\n", g_mqTopicCtrl, g_mqClientId, QOS);
 	MQTTClient_subscribe(client, g_mqTopicCtrl, QOS);
-	MQTTClient_subscribe(client, g_mqTopicDl, QOS);
+	//MQTTClient_subscribe(client, g_mqTopicDl, QOS);
+	printf(" mqtt sub ok 1\n");
 
 	while(1)
 	{
@@ -85,6 +86,8 @@ void *mqttPubThread(int argc, char* argv[])
 			else
 			{
 				MQTTClient_subscribe(client, g_mqTopicCtrl, QOS);
+				//MQTTClient_subscribe(client, g_mqTopicDl, QOS);
+				printf(" mqtt sub ok 2\n");
 			}
 			sleep(3);
 		};

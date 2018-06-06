@@ -179,9 +179,10 @@ void *sampleData_treat(void)
 	while(1)
 	{
 			//g_reportTimeCnt++;
+		// printf("enter sample process\n");
 			g_reportTimeCnt=g_reportTimeCnt+10;
 			data4Test();
-			sleep(1);
+			sleep(3);
 			dataInt2String();
 			dataReport_treat();
 			pthread_mutex_lock(&mqBuff.lock);

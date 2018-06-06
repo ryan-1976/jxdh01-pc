@@ -6,8 +6,8 @@
 #include "cJSON.h"
 
 DOWNLOAD g_dlState;
-unsigned char *g_fileTmp;
-unsigned char *g_filePkOk;
+unsigned char *g_fileTmp=NULL;
+unsigned char *g_filePkOk=NULL;
 FILE *dlfp;
 
 int parseJson (unsigned char *strJson )
@@ -37,7 +37,7 @@ int parseJson (unsigned char *strJson )
 			g_dlState.curState =1;
 			item=cJSON_GetObjectItem(pSubData,"fileName");
 			strcpy(g_dlState.dlName,item->valuestring);
-			g_fileTmp = (unsigned char *)malloc(g_dlState.fileLen);
+			g_fileTmp = (unsigned char *)malloc(g_dlState.fileLen+1);
 			g_filePkOk = (unsigned char *)malloc(g_dlState.pkSum+1);
 			if (!g_fileTmp ||!g_filePkOk)
 			{
@@ -75,7 +75,7 @@ int parseJson (unsigned char *strJson )
 				printf("%d",g_filePkOk[i]);
 			}
 			printf("\n");
-			printf("%s\n",g_fileTmp);
+			//printf("%s\n",g_fileTmp);
            if(!temp)
            {
         	   g_dlState.curState =2;
@@ -87,6 +87,8 @@ int parseJson (unsigned char *strJson )
         	   fclose(dlfp);
         	   free(g_fileTmp);
         	   free(g_filePkOk);
+        	   sleep(2);
+        	   exit(0);
         	   printf("---download ok---------------------\n");
            }
 		}

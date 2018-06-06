@@ -4,7 +4,12 @@
 #include <stdlib.h> //exit
 #include <pthread.h>
 #include "circlebuff.h"
-
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <ctype.h>
+#include <stddef.h>
+#include <sys/wait.h>
 extern void * mqtt_sub_treat(int argc, char* argv[]);
 extern void * mqttPubThread(int argc, char* argv[]);
 extern void * msgDisPatcherThread(void);
@@ -20,11 +25,9 @@ int main()
 {
 
 
-
-
 	pthread_t th_a, th_b,th_c,th_d,th_e,th_f;
 	void *retval;
-
+	//bootMonitor();
 	//json_init();
 	sqTable_init();
 	G_Buff_init();
@@ -42,7 +45,6 @@ int main()
 	pthread_join(th_c, &retval);
 	pthread_join(th_e, &retval);
 	//pthread_join(th_f, &retval);
-	return 0;
 
     return 0;
 }
