@@ -134,6 +134,7 @@ extern int  get_typeValue(char *ssType);
 extern void testCrc32(void);
 extern INT32U caculate_crc( unsigned char *string, INT32U size);
 extern int base64_decode( const char * base64, unsigned char * bindata );
+extern void DebugPrint(char *fmt, ...);
 //extern void calc_img_crc(void);
 
 extern devDataTable *g_devDataTab;

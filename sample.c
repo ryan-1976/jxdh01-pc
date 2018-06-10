@@ -172,7 +172,7 @@ char *getJson(int idx)
         return p;
 }
 
-void *sampleData_treat(void)
+void *sampleDataThread(void)
 {
 	data_classification();
 	//testCrc32();
@@ -180,17 +180,18 @@ void *sampleData_treat(void)
 	{
 			//g_reportTimeCnt++;
 		// printf("enter sample process\n");
-			g_reportTimeCnt=g_reportTimeCnt+10;
-			data4Test();
-			sleep(3);
-			dataInt2String();
-			dataReport_treat();
-			pthread_mutex_lock(&mqBuff.lock);
-			if(sMqNewpacketFlag !=0)
-			{
-				pthread_cond_signal(&mqBuff.newPacketFlag);
-				sMqNewpacketFlag =0;
-			}
-			pthread_mutex_unlock(&mqBuff.lock);
+		DebugPrint("----test udp debug----enter sample process---------------\n");
+		g_reportTimeCnt=g_reportTimeCnt+10;
+		data4Test();
+		sleep(3);
+		dataInt2String();
+		dataReport_treat();
+		pthread_mutex_lock(&mqBuff.lock);
+		if(sMqNewpacketFlag !=0)
+		{
+			pthread_cond_signal(&mqBuff.newPacketFlag);
+			sMqNewpacketFlag =0;
+		}
+		pthread_mutex_unlock(&mqBuff.lock);
 	}
 }
