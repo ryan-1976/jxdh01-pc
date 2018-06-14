@@ -70,8 +70,6 @@ void *udpServerThread(void)
 	        	g_debugAddr =g_remoteAddr;
 
 	        }
-
-
 //	        for(int i=0;i<1024;i++)udpSentBuf[i]=i;
 //	        sendto(g_sockfd,&udpSentBuf,sizeof(udpSentBuf),0,(struct sockaddr*)&g_remoteAddr,sizeof(g_remoteAddr));
 
